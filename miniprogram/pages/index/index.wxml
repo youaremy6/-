@@ -1,0 +1,153 @@
+<view class="page">
+  <view class="header">
+    <view class="brand">小甘</view>
+    <view class="subtitle">兰州话 ↔ 普通话 · 试运行</view>
+  </view>
+
+  <view wx:if="{{serviceOffline}}" class="demo-banner offline">
+    连不上后端服务：语音翻译暂不可用，常用句仍可离线使用。
+  </view>
+  <view wx:elif="{{demoMode}}" class="demo-banner">{{demoText}}</view>
+
+  <view class="direction-row">
+    <view
+      class="direction-card {{direction === 'dialect' ? 'active' : ''}}"
+      data-dir="dialect"
+      bindtap="onSelectDirection"
+    >
+      <view class="dir-title">听兰州话</view>
+      <view class="dir-desc">按住说一句，转成普通话文字和语音</view>
+    </view>
+    <view
+      class="direction-card {{direction === 'mandarin' ? 'active' : ''}}"
+      data-dir="mandarin"
+      bindtap="onSelectDirection"
+    >
+      <view class="dir-title">说普通话</view>
+      <view class="dir-desc">输入普通话，生成兰州话文字和语音</view>
+    </view>
+  </view>
+
+  <view class="scenario-row">
+    <view
+      wx:for="{{scenarios}}"
+      wx:key="id"
+      class="chip {{scenario === item.id ? 'active' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="onSelectScenario"
+    >{{item.label}}</view>
+  </view>
+
+  <block wx:if="{{direction === 'dialect'}}">
+    <view class="talk-panel">
+      <view
+        class="talk-button {{state === 'recording' ? 'is-recording' : ''}} {{busy ? 'is-busy' : ''}}"
+        bindtouchstart="onPressStart"
+        bindtouchend="onPressEnd"
+        bindtouchcancel="onPressEnd"
+      >
+        <view class="talk-icon">{{state === 'recording' ? '●' : '🎙'}}</view>
+        <view class="talk-text">{{statusText}}</view>
+        <view class="talk-sub">{{state === 'recording' ? '松开后自动翻译' : '按住说话 · 最长 30 秒'}}</view>
+      </view>
+      <view class="talk-note">录音只用于本次翻译，处理完即删除；日志不记录原话。</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="card compose">
+      <textarea
+        class="compose-input"
+        placeholder="输入一句普通话，例如：医生，我有点头晕。"
+        value="{{textInput}}"
+        bindinput="onTextInput"
+        maxlength="200"
+        auto-height
+        cursor-spacing="24"
+      />
+      <button class="primary-btn compose-btn" bindtap="onGenerateDialect" disabled="{{busy}}">
+        {{busy ? '正在生成…' : '生成兰州话'}}
+      </button>
+    </view>
+  </block>
+
+  <view wx:if="{{hintText}}" class="hint">{{hintText}}</view>
+
+  <view wx:if="{{error}}" class="card error-card">
+    <view class="error-title">{{error.title}}</view>
+    <view class="error-message">{{error.message}}</view>
+    <view class="error-actions">
+      <button wx:if="{{error.retryable}}" class="mini-btn" size="mini" bindtap="onRetry">重试上传</button>
+      <button wx:if="{{error.showSettings}}" class="mini-btn" size="mini" bindtap="onOpenPermissionSettings">打开设置</button>
+      <button wx:if="{{error.canEdit}}" class="mini-btn mini-primary" size="mini" bindtap="onTapEdit">改文字</button>
+      <button class="mini-btn" size="mini" bindtap="onDismissError">重说</button>
+      <button class="mini-btn" size="mini" bindtap="onUsePhrases">用常用句</button>
+    </view>
+  </view>
+
+  <view wx:if="{{result}}" class="dialog">
+    <view class="bubble left">
+      <view class="bubble-tag">{{result.inputTag}}</view>
+      <view class="bubble-text">{{result.inputText}}</view>
+    </view>
+
+    <view class="bubble right">
+      <view class="bubble-tag">{{result.outputTag}}</view>
+      <block wx:if="{{editing}}">
+        <textarea
+          class="edit-input"
+          value="{{editText}}"
+          bindinput="onEditInput"
+          auto-height
+          maxlength="200"
+          focus="{{true}}"
+        />
+        <view class="edit-actions">
+          <button class="mini-btn" size="mini" bindtap="onCancelEdit">取消</button>
+          <button class="mini-btn mini-primary" size="mini" bindtap="onConfirmEdit">重新翻译</button>
+        </view>
+        <view class="edit-hint">正在修改“{{result.inputTag}}”这句。</view>
+      </block>
+      <block wx:else>
+        <view class="bubble-text output">{{result.outputText}}</view>
+        <view wx:if="{{result.backTranslation}}" class="back-translation">回译：{{result.backTranslation}}</view>
+      </block>
+    </view>
+
+    <view wx:if="{{result.needsConfirmation}}" class="notice warn">
+      这句把握不大，先让对方看文字；点“改字”确认后再播放。
+    </view>
+    <view wx:if="{{result.ttsFailed}}" class="notice warn">
+      方言语音暂时没生成，先用文字沟通。
+    </view>
+    <view wx:if="{{result.demo}}" class="notice demo">
+      演示模式：这条转写来自内置语料，不是真实识别。
+    </view>
+
+    <view class="result-actions">
+      <button class="action-btn" bindtap="onPlayResult" disabled="{{!result.audioUrl}}">
+        {{result.playLabel}}
+      </button>
+      <button class="action-btn" bindtap="onResay">{{direction === 'dialect' ? '重说' : '重输'}}</button>
+      <button class="action-btn" bindtap="onTapEdit">改字</button>
+    </view>
+    <view class="audio-note">AI 生成语音 · 音频链接 1 小时后失效</view>
+  </view>
+
+  <view class="bottom-nav">
+    <view class="nav-item" bindtap="onOpenPhrases">常用句</view>
+    <view class="nav-item" bindtap="onOpenSettings">设置</view>
+  </view>
+
+  <view wx:if="{{showMicIntro}}" class="mask" catchtouchmove="noop">
+    <view class="modal">
+      <view class="modal-title">需要麦克风</view>
+      <view class="modal-text">
+        按住说话后，我们用麦克风录下这一句兰州话，只用于本次翻译，处理完即删除。
+        日志不会记录你的原话，也可以随时在设置里删除本次记录。
+      </view>
+      <button class="primary-btn" bindtap="onConfirmMicIntro">知道了，开始使用</button>
+      <button class="text-btn" bindtap="onCancelMicIntro">先用常用句</button>
+    </view>
+  </view>
+</view>

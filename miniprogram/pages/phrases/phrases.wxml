@@ -1,0 +1,89 @@
+<view class="page">
+  <view class="header">
+    <view class="brand">常用句</view>
+    <view class="subtitle">兰州话 · 试运行</view>
+  </view>
+
+  <view class="notice draft-notice">
+    共 {{count}} 条，{{draftCount}} 条为草稿。兰州话文本与语音必须经母语者校对后才能作为正式内容。
+  </view>
+
+  <scroll-view class="tab-scroll" scroll-x enable-flex>
+    <view class="tab-row">
+      <view
+        wx:for="{{scenarios}}"
+        wx:key="id"
+        class="chip {{active === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onSelectTab"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view wx:for="{{items}}" wx:key="id">
+    <view
+      wx:if="{{!active && (index === 0 || items[index - 1].scenario !== item.scenario)}}"
+      class="group-title"
+    >{{item.scenarioLabel}}</view>
+
+    <view class="card phrase-card" data-id="{{item.id}}" bindtap="onOpenFull">
+      <view class="phrase-head">
+        <view class="phrase-scenario">{{item.scenarioLabel}}</view>
+        <view wx:if="{{item.isDraft}}" class="badge badge-draft">草稿 · 待母语者校对</view>
+        <view wx:else class="badge badge-ok">已校对</view>
+      </view>
+
+      <view class="phrase-mandarin">{{item.mandarin}}</view>
+      <view class="phrase-lanzhou">{{item.lanzhou}}</view>
+
+      <view wx:if="{{item.lanzhouPlaceholder}}" class="badge badge-placeholder">
+        兰州话为示意音频，待母语者录制
+      </view>
+
+      <view class="phrase-actions">
+        <button
+          class="mini-btn"
+          size="mini"
+          data-id="{{item.id}}"
+          data-lang="mandarin"
+          catchtap="onPlayCard"
+        >{{playingKey === item.id + ':mandarin' ? '播放中…' : '普通话'}}</button>
+        <button
+          class="mini-btn"
+          size="mini"
+          data-id="{{item.id}}"
+          data-lang="lanzhou"
+          catchtap="onPlayCard"
+        >{{playingKey === item.id + ':lanzhou' ? '播放中…' : '兰州话'}}</button>
+        <button
+          class="mini-btn mini-primary share-btn"
+          size="mini"
+          data-id="{{item.id}}"
+          catchtap="onOpenFull"
+        >给对方看</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer-note">点“给对方看”可全屏显示，方便把手机递过去。</view>
+
+  <view wx:if="{{fullscreen}}" class="mask full-mask" catchtouchmove="noop">
+    <view class="full-panel">
+      <view class="full-close" bindtap="onCloseFull">关闭</view>
+      <view class="full-label">给对方看</view>
+      <view class="full-lanzhou">{{fullscreen.lanzhou}}</view>
+      <view class="full-mandarin">普通话：{{fullscreen.mandarin}}</view>
+      <view wx:if="{{fullscreen.lanzhouPlaceholder}}" class="badge badge-placeholder">
+        兰州话为示意音频，待母语者录制
+      </view>
+      <view class="full-actions">
+        <button class="primary-btn" data-lang="lanzhou" bindtap="onPlayFull">
+          {{playingKey === fullscreen.id + ':lanzhou' ? '播放中…' : '播放兰州话'}}
+        </button>
+        <button class="mini-btn" size="mini" data-lang="mandarin" bindtap="onPlayFull">
+          播放普通话
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

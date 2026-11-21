@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>小甘 · 兰州话 ↔ 普通话（网页试用）</title>
+  <style>
+    :root {
+      --ochre: #a84f32;
+      --teal: #2f625c;
+      --paper: #fbf7ef;
+      --ink: #241f1a;
+      --muted: #6b6157;
+      --line: #e2d8c8;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .page { width: 100%; max-width: 720px; margin: 0 auto; padding: 20px 18px 48px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    header > div { min-width: 0; }
+    #copyLink { flex: 0 0 auto; margin-left: auto; }
+    .brand { font-size: 26px; font-weight: 700; letter-spacing: 2px; color: var(--ochre); }
+    .subtitle { font-size: 13px; color: var(--muted); }
+    .banner {
+      margin: 14px 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fff4d6;
+      border: 1px solid #ecd292;
+      color: #7a5312;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .banner.error { background: #fdecea; border-color: #e7b9a8; color: #8f3418; }
+    .hidden { display: none !important; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+    .tab {
+      flex: 1 1 140px;
+      min-width: 0;
+      padding: 14px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      text-align: center;
+      font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .tab.active { background: var(--ochre); border-color: var(--ochre); color: #fffaf4; }
+    .tabs.sub { margin: 8px 0 16px; flex-wrap: wrap; }
+    .chip {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid #d9ccb8;
+      background: #fffdf8;
+      color: #4a4036;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      .brand { font-size: 24px; }
+      .tab { padding: 12px 8px; font-size: 16px; }
+      .chip { padding: 7px 12px; font-size: 13px; }
+      .talk { min-height: 136px; font-size: 18px; }
+    }
+    .chip.active { background: var(--teal); border-color: var(--teal); color: #fbf7ef; }
+    .card {
+      background: #fffdf8;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(36, 31, 26, 0.05);
+    }
+    .talk {
+      width: 100%;
+      min-height: 150px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(160deg, #b25a3b, #a84f32 55%, #8f4129);
+      color: #fffaf4;
+      font-size: 19px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      padding: 22px;
+      box-shadow: 0 12px 26px rgba(168, 79, 50, 0.25);
+    }
+    .talk.recording { background: linear-gradient(160deg, #2f625c, #24504b); }
+    .talk small { display: block; margin-top: 8px; font-size: 13px; font-weight: 400; opacity: 0.85; }
+    textarea {
+      width: 100%;
+      min-height: 96px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font: inherit;
+      resize: vertical;
+      background: #fffdf8;
+    }
+    .primary {
+      width: 100%;
+      margin-top: 12px;
+      min-height: 52px;
+      border: none;
+      border-radius: 12px;
+      background: var(--ochre);
+      color: #fffaf4;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .primary:disabled { opacity: 0.45; cursor: default; }
+    .status { min-height: 24px; margin: 10px 0; color: var(--muted); font-size: 14px; text-align: center; }
+    .result-tag { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .result-text { font-size: 18px; line-height: 1.55; margin-bottom: 12px; word-break: break-word; }
+    .result-text.big { font-size: 26px; font-weight: 700; }
+    .warn { margin-top: 8px; padding: 9px 12px; border-radius: 9px; background: #fff4d6; border: 1px solid #ecd292; color: #7a5312; font-size: 13px; }
+    .warn.demo { background: #eef4f1; border-color: #cfe0d9; color: var(--teal); }
+    .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .actions button {
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 10px;
+      border: 1px solid #d9ccb8;
+      background: #fffdf8;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .actions button.strong { background: var(--teal); border-color: var(--teal); color: #fbf7ef; }
+    .phrase { padding: 12px 0; border-bottom: 1px dashed var(--line); }
+    .phrase:last-child { border-bottom: none; }
+    .phrase .lz { font-size: 17px; font-weight: 600; }
+    .phrase .mz { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .phrase .row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+    .phrase button { font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #d9ccb8; background: #fffdf8; cursor: pointer; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 6px; background: #fff4d6; color: #7a5312; border: 1px solid #ecd292; }
+    .badge.ok { background: #e6f2ec; color: var(--teal); border-color: #cfe0d9; }
+    h2 { font-size: 17px; margin: 0 0 8px; }
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    footer { margin-top: 24px; text-align: center; font-size: 12px; color: #8a7f72; }
+    a { color: var(--teal); }
+  </style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <div>
+      <div class="brand">小甘</div>
+      <div class="subtitle">兰州话 ↔ 普通话 · 网页试用 · 只覆盖兰州话</div>
+    </div>
+    <button id="copyLink" class="chip" type="button">复制链接</button>
+  </header>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <div class="tabs" id="directionTabs">
+    <button class="tab active" data-dir="dialect" type="button">听兰州话</button>
+    <button class="tab" data-dir="mandarin" type="button">说普通话</button>
+  </div>
+
+  <div class="tabs sub" id="scenarioTabs">
+    <button class="chip active" data-scenario="" type="button">全部</button>
+    <button class="chip" data-scenario="medical" type="button">就医</button>
+    <button class="chip" data-scenario="transport" type="button">出行</button>
+    <button class="chip" data-scenario="market" type="button">买卖</button>
+    <button class="chip" data-scenario="help" type="button">日常</button>
+  </div>
+
+  <section id="panelDialect">
+    <button id="talk" class="talk" type="button">
+      🎙 按住说一句兰州话
+      <small>松开后自动翻译 · 最长 30 秒 · 只用于本次翻译</small>
+    </button>
+    <div id="micStatus" class="muted" style="margin-top:10px"></div>
+    <button id="testUpload" class="chip" type="button" style="margin-top:10px">
+      测试后端上传（不需要麦克风）
+    </button>
+  </section>
+
+  <section id="panelMandarin" class="hidden">
+    <div class="card">
+      <textarea id="mandarinText" maxlength="200" placeholder="输入一句普通话，例如：医生，我有点头晕。"></textarea>
+      <button id="generate" class="primary" type="button">生成兰州话</button>
+    </div>
+  </section>
+
+  <div id="status" class="status"></div>
+
+  <section id="resultCard" class="card hidden">
+    <div id="resultBody"></div>
+    <div class="actions">
+      <button id="playResult" class="strong" type="button" disabled>播放译文</button>
+      <button id="resetResult" type="button">重说 / 重输</button>
+    </div>
+    <div class="muted" style="margin-top:10px">AI 生成语音 · 音频链接 1 小时后失效</div>
+  </section>
+
+  <section class="card">
+    <h2>常用句（离线包可播）</h2>
+    <div id="phraseList" class="muted">加载中…</div>
+  </section>
+
+  <footer>
+    录音只用于本次翻译，处理完即删除；日志不记录原话。<br />
+    当前只覆盖兰州话（试运行），不承诺全甘肃；结果标注“演示模式”时不是真实识别。
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var params = new URLSearchParams(window.location.search);
+  var apiBase = (params.get('api') || window.location.origin).replace(/\/$/, '');
+  var direction = 'dialect';
+  var scenario = '';
+  var recording = false;
+  var starting = false;
+  var cancelStart = false;
+  var chunks = [];
+  var audioCtx = null;
+  var sourceNode = null;
+  var processorNode = null;
+  var gainNode = null;
+  var mediaStream = null;
+  var startedAt = 0;
+  var timerId = null;
+  var autoStopId = null;
+  var currentAudio = null;
+  var busy = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var banner = $('banner');
+  var statusEl = $('status');
+  var talkBtn = $('talk');
+  var resultCard = $('resultCard');
+  var resultBody = $('resultBody');
+  var playBtn = $('playResult');
+
+  var WARNING_LABELS = {
+    mock_asr: '演示模式：这条转写来自内置语料，不是真实识别。',
+    low_confidence: '这句把握不大，先让对方看文字。',
+    llm_degraded: '语言模型没成功，先显示原文。',
+    tts_error: '语音暂时没生成，先用文字沟通。',
+    text_only: '这次只生成了文字。',
+    numbers_changed: '数字/金额可能被改动，请核对后再用。',
+    cached_phrase: '语音来自预设语音包。',
+    idempotent_replay: '这是重复请求的缓存结果。'
+  };
+
+  var ERROR_LABELS = {
+    too_short: '太短了，按住多说一会儿（至少 0.8 秒）。',
+    too_long: '一次说一句，最多 30 秒。',
+    asr_empty: '没听清，再说一遍，或切到“说普通话”直接打字。',
+    low_confidence: '这句可能没听清，建议重说或改用文字。',
+    unsupported_audio: '浏览器录到的格式不被接受，请用较新的 Chrome / Safari。',
+    network_error: '网络不稳，请重试；常用句仍可播放。',
+    asr_timeout: '识别超时，请重试。',
+    tts_timeout: '语音合成超时，先用文字沟通。',
+    permission_denied: '麦克风没有授权，请在浏览器地址栏允许麦克风。'
+  };
+
+  function setStatus(text) { statusEl.textContent = text || ''; }
+  function showBanner(text, isError) {
+    banner.textContent = text;
+    banner.className = 'banner' + (isError ? ' error' : '');
+    banner.classList.remove('hidden');
+  }
+  function hideBanner() { banner.classList.add('hidden'); }
+
+  function newRequestId() {
+    return 'req_web_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function loadHealth() {
+    fetch(apiBase + '/api/v1/health')
+      .then(function (res) { return res.json(); })
+      .then(function (health) {
+        var deps = health.dependencies || {};
+        var labels = { asr: '兰州话识别', llm: '语义转写', tts: '方言语音合成' };
+        var mocks = Object.keys(deps).filter(function (key) { return deps[key].mode === 'mock'; })
+          .map(function (key) { return labels[key] || key; });
+        if (mocks.length) {
+          var asrMock = deps.asr && deps.asr.mode === 'mock';
+          var text = asrMock
+            ? '演示模式：' + mocks.join('、') + ' 未接入。麦克风可以录音、音频也能上传，但不会识别你说的内容。'
+            : '演示模式：' + mocks.join('、') + ' 未接入。录音会先做本地识别，语义转写和方言语音合成仍是演示。';
+          showBanner(text, false);
+        }
+      })
+      .catch(function () {
+        showBanner('后端接口连不上：翻译会失败，但麦克风能不能用和后端无关。先检查服务是否启动，或刷新重试。', true);
+      });
+  }
+
+  function checkMicEnvironment() {
+    var el = $('micStatus');
+    var secure = window.isSecureContext;
+    var hasApi = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    var inWechat = /MicroMessenger/i.test(navigator.userAgent);
+    var text = '';
+    var bad = false;
+    if (inWechat) {
+      text = '当前在微信内置浏览器：它通常不允许网页录音。请点右上角“在浏览器打开”，用 Safari / Chrome。';
+      bad = true;
+    } else if (!secure) {
+      text = '当前页面不是 HTTPS（也不是 localhost）：浏览器会禁用麦克风。请用 https 地址打开。';
+      bad = true;
+    } else if (!hasApi) {
+      text = '当前浏览器不支持网页录音，请换较新的 Chrome / Safari / Edge。';
+      bad = true;
+    } else {
+      text = '麦克风环境正常：第一次按住时会请求系统/浏览器的麦克风权限。';
+    }
+    el.textContent = text;
+    el.style.color = bad ? '#8f3418' : '#6b6157';
+    return { secure: secure, hasApi: hasApi, inWechat: inWechat };
+  }
+
+  function loadPhrases() {
+    fetch(apiBase + '/api/v1/phrases')
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var list = $('phraseList');
+        list.className = '';
+        list.textContent = '';
+        (data.phrases || []).forEach(function (phrase) {
+          var row = document.createElement('div');
+          row.className = 'phrase';
+
+          var lz = document.createElement('div');
+          lz.className = 'lz';
+          lz.textContent = phrase.lanzhou;
+          row.appendChild(lz);
+
+          var mz = document.createElement('div');
+          mz.className = 'mz';
+          mz.textContent = '普通话：' + phrase.mandarin;
+          row.appendChild(mz);
+
+          var actions = document.createElement('div');
+          actions.className = 'row';
+
+          [['lanzhou', '兰州话', phrase.lanzhouAudio], ['mandarin', '普通话', phrase.mandarinAudio]].forEach(function (item) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = '▶ ' + item[1];
+            button.disabled = !item[2] || !item[2].url;
+            button.addEventListener('click', function () {
+              if (item[2] && item[2].url) playUrl(item[2].url);
+            });
+            actions.appendChild(button);
+          });
+
+          var badge = document.createElement('span');
+          badge.className = 'badge' + (phrase.reviewStatus === 'verified' ? ' ok' : '');
+          badge.textContent = phrase.reviewStatus === 'verified' ? '已校对' : '草稿';
+          actions.appendChild(badge);
+
+          if (phrase.lanzhouAudio && phrase.lanzhouAudio.kind === 'placeholder') {
+            var placeholder = document.createElement('span');
+            placeholder.className = 'badge';
+            placeholder.textContent = '示意音频';
+            actions.appendChild(placeholder);
+          }
+
+          row.appendChild(actions);
+          list.appendChild(row);
+        });
+      })
+      .catch(function () {
+        $('phraseList').textContent = '常用句加载失败，检查后端是否已启动。';
+      });
+  }
+
+  function playUrl(url) {
+    if (currentAudio) {
+      try { currentAudio.pause(); } catch (err) {}
+    }
+    currentAudio = new Audio(url);
+    currentAudio.play().catch(function () {
+      setStatus('播放失败，请检查音量或网络。');
+    });
+  }
+
+  function setDirection(next) {
+    direction = next;
+    Array.prototype.forEach.call(document.querySelectorAll('#directionTabs .tab'), function (tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-dir') === next);
+    });
+    $('panelDialect').classList.toggle('hidden', next !== 'dialect');
+    $('panelMandarin').classList.toggle('hidden', next !== 'mandarin');
+    resultCard.classList.add('hidden');
+    setStatus('');
+  }
+
+  function mergeChunks(parts) {
+    var total = 0;
+    parts.forEach(function (part) { total += part.length; });
+    var merged = new Float32Array(total);
+    var offset = 0;
+    parts.forEach(function (part) { merged.set(part, offset); offset += part.length; });
+    return merged;
+  }
+
+  function resample(input, inputRate, outputRate) {
+    if (inputRate === outputRate) return input;
+    var ratio = inputRate / outputRate;
+    var length = Math.floor(input.length / ratio);
+    var output = new Float32Array(length);
+    for (var i = 0; i < length; i += 1) {
+      var position = i * ratio;
+      var left = Math.floor(position);
+      var right = Math.min(left + 1, input.length - 1);
+      var weight = position - left;
+      output[i] = input[left] * (1 - weight) + input[right] * weight;
+    }
+    return output;
+  }
+
+  function encodeWav(samples) {
+    var buffer = new ArrayBuffer(44 + samples.length * 2);
+    var view = new DataView(buffer);
+    function writeString(offset, text) {
+      for (var i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i));
+    }
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + samples.length * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, 16000, true);
+    view.setUint32(28, 32000, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, samples.length * 2, true);
+    var offset = 44;
+    for (var i = 0; i < samples.length; i += 1) {
+      var value = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, value < 0 ? value * 0x8000 : value * 0x7fff, true);
+      offset += 2;
+    }
+    return new Blob([view], { type: 'audio/wav' });
+  }
+
+  function stopNodes() {
+    if (processorNode) {
+      processorNode.onaudioprocess = null;
+      try { processorNode.disconnect(); } catch (err) {}
+      processorNode = null;
+    }
+    if (sourceNode) { try { sourceNode.disconnect(); } catch (err) {} sourceNode = null; }
+    if (gainNode) { try { gainNode.disconnect(); } catch (err) {} gainNode = null; }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(function (track) { track.stop(); });
+      mediaStream = null;
+    }
+  }
+
+  async function startRecording() {
+    if (recording || starting || busy) return;
+    if (!window.isSecureContext) {
+      showBanner('当前页面不是 HTTPS（也不是 localhost），浏览器不会给麦克风权限。请用 https 地址打开，或改用文字输入。', true);
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showBanner('这个浏览器不支持网页录音。请用较新的 Chrome / Safari / Edge，或直接输入文字。', true);
+      return;
+    }
+    hideBanner();
+    starting = true;
+    cancelStart = false;
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+      });
+    } catch (err) {
+      starting = false;
+      showBanner('麦克风没有授权。请在地址栏允许麦克风后重试；也可以直接用文字输入。', true);
+      return;
+    }
+    if (cancelStart) {
+      starting = false;
+      stopNodes();
+      return;
+    }
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    if (cancelStart) {
+      starting = false;
+      stopNodes();
+      return;
+    }
+
+    chunks = [];
+    sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+    processorNode = audioCtx.createScriptProcessor(4096, 1, 1);
+    processorNode.onaudioprocess = function (event) {
+      if (!recording) return;
+      chunks.push(new Float32Array(event.inputBuffer.getChannelData(0)));
+    };
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0;
+    sourceNode.connect(processorNode);
+    processorNode.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    recording = true;
+    starting = false;
+    startedAt = performance.now();
+    talkBtn.classList.add('recording');
+    talkBtn.firstChild.textContent = '● 正在录 · 00:00';
+    setStatus('松开后翻译');
+    timerId = setInterval(function () {
+      var seconds = Math.floor((performance.now() - startedAt) / 1000);
+      var text = ('0' + Math.floor(seconds / 60)).slice(-2) + ':' + ('0' + (seconds % 60)).slice(-2);
+      talkBtn.firstChild.textContent = '● 正在录 · ' + text;
+    }, 200);
+    autoStopId = setTimeout(function () { stopRecording(); }, 30000);
+  }
+
+  async function stopRecording() {
+    if (starting && !recording) {
+      cancelStart = true;
+      return;
+    }
+    if (!recording) return;
+    recording = false;
+    clearInterval(timerId);
+    clearTimeout(autoStopId);
+    timerId = null;
+    autoStopId = null;
+    var elapsed = (performance.now() - startedAt) / 1000;
+    var inputRate = audioCtx ? audioCtx.sampleRate : 48000;
+    stopNodes();
+    talkBtn.classList.remove('recording');
+    talkBtn.firstChild.textContent = '🎙 按住说一句兰州话';
+
+    if (elapsed < 0.8) {
+      setStatus(ERROR_LABELS.too_short);
+      chunks = [];
+      return;
+    }
+    if (!chunks.length) {
+      setStatus('没有录到声音，请检查麦克风后重试。');
+      return;
+    }
+    var merged = mergeChunks(chunks);
+    chunks = [];
+    var resampled = resample(merged, inputRate, 16000);
+    var blob = encodeWav(resampled);
+    await uploadAudio(blob);
+  }
+
+  async function uploadAudio(blob) {
+    busy = true;
+    setStatus('正在听懂…');
+    var form = new FormData();
+    form.append('audio', blob, 'speech.wav');
+    form.append('requestId', newRequestId());
+    form.append('dialectId', 'lanzhou');
+    form.append('scenario', scenario);
+    try {
+      var response = await fetch(apiBase + '/api/v1/translate/audio', { method: 'POST', body: form });
+      var data = await response.json();
+      if (!response.ok) throw data.error || { code: 'http_error', message: '请求失败' };
+      showDialectResult(data);
+    } catch (error) {
+      setStatus(ERROR_LABELS[error.code] || error.message || '这次没成功，请重试。');
+    } finally {
+      busy = false;
+    }
+  }
+
+  function showWarnings(card, warnings) {
+    (warnings || []).forEach(function (code) {
+      var label = WARNING_LABELS[code];
+      if (!label) return;
+      var div = document.createElement('div');
+      div.className = 'warn' + (code === 'mock_asr' ? ' demo' : '');
+      div.textContent = label;
+      card.appendChild(div);
+    });
+  }
+
+  function renderResult(inputTag, inputText, outputTag, outputText, backTranslation, audioUrl, warnings) {
+    resultBody.textContent = '';
+
+    var tag1 = document.createElement('div');
+    tag1.className = 'result-tag';
+    tag1.textContent = inputTag;
+    resultBody.appendChild(tag1);
+
+    var text1 = document.createElement('div');
+    text1.className = 'result-text';
+    text1.textContent = inputText;
+    resultBody.appendChild(text1);
+
+    var tag2 = document.createElement('div');
+    tag2.className = 'result-tag';
+    tag2.textContent = outputTag;
+    resultBody.appendChild(tag2);
+
+    var text2 = document.createElement('div');
+    text2.className = 'result-text big';
+    text2.textContent = outputText;
+    resultBody.appendChild(text2);
+
+    if (backTranslation) {
+      var back = document.createElement('div');
+      back.className = 'muted';
+      back.textContent = '回译：' + backTranslation;
+      resultBody.appendChild(back);
+    }
+
+    showWarnings(resultBody, warnings);
+
+    playBtn.disabled = !audioUrl;
+    playBtn.onclick = audioUrl ? function () { playUrl(audioUrl); } : null;
+    resultCard.classList.remove('hidden');
+    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function showDialectResult(data) {
+    setStatus('');
+    renderResult(
+      '对方 · 兰州话',
+      data.asrText,
+      '我 · 普通话',
+      data.outputText,
+      '',
+      data.outputAudioUrl,
+      data.warnings
+    );
+    if (data.warnings && data.warnings.indexOf('tts_error') >= 0) {
+      setStatus('方言语音暂时没生成，先用文字沟通。');
+    }
+  }
+
+  async function generateDialect() {
+    var text = ($('mandarinText').value || '').trim();
+    if (!text) { setStatus('先写一句普通话。'); return; }
+    if (busy) return;
+    busy = true;
+    setStatus('正在生成兰州话…');
+    try {
+      var response = await fetch(apiBase + '/api/v1/translate/text', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          requestId: newRequestId(),
+          direction: 'mandarin_to_dialect',
+          dialectId: 'lanzhou',
+          scenario: scenario || null,
+          text: text
+        })
+      });
+      var data = await response.json();
+      if (!response.ok) throw data.error || { code: 'http_error', message: '请求失败' };
+      setStatus('');
+      renderResult(
+        '我 · 普通话',
+        data.inputText,
+        '对方 · 兰州话',
+        data.dialectText,
+        data.backTranslation,
+        data.outputAudioUrl,
+        data.warnings
+      );
+    } catch (error) {
+      setStatus(ERROR_LABELS[error.code] || error.message || '这次没成功，请重试。');
+    } finally {
+      busy = false;
+    }
+  }
+
+  // Events
+  Array.prototype.forEach.call(document.querySelectorAll('#directionTabs .tab'), function (tab) {
+    tab.addEventListener('click', function () { setDirection(tab.getAttribute('data-dir')); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#scenarioTabs .chip'), function (chip) {
+    chip.addEventListener('click', function () {
+      scenario = chip.getAttribute('data-scenario') || '';
+      Array.prototype.forEach.call(document.querySelectorAll('#scenarioTabs .chip'), function (other) {
+        other.classList.toggle('active', other === chip);
+      });
+    });
+  });
+
+  talkBtn.addEventListener('pointerdown', function (event) {
+    event.preventDefault();
+    startRecording();
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (name) {
+    talkBtn.addEventListener(name, function (event) {
+      event.preventDefault();
+      stopRecording();
+    });
+  });
+  talkBtn.addEventListener('contextmenu', function (event) { event.preventDefault(); });
+
+  $('generate').addEventListener('click', generateDialect);
+  $('testUpload').addEventListener('click', function () {
+    if (busy) return;
+    // 1.2 s of silence: proves upload + translate + audio without any microphone.
+    setStatus('正在测试上传…');
+    var blob = encodeWav(new Float32Array(16000 * 1.2));
+    uploadAudio(blob);
+  });
+  $('resetResult').addEventListener('click', function () {
+    resultCard.classList.add('hidden');
+    setStatus('');
+  });
+  $('copyLink').addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setStatus('链接已复制，可以发给别人或生成二维码。');
+    } catch (err) {
+      setStatus('复制失败，请手动复制地址栏链接。');
+    }
+  });
+
+  loadHealth();
+  checkMicEnvironment();
+  loadPhrases();
+})();
+</script>
+</body>
+</html>

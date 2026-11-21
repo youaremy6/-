@@ -1,0 +1,78 @@
+<view class="page">
+  <view class="header">
+    <view class="brand">设置</view>
+    <view class="subtitle">兰州话（试运行）</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">语言</view>
+    <view class="row">
+      <view class="row-label">当前语言</view>
+      <view class="row-value">兰州话（试运行）</view>
+    </view>
+    <view class="muted">
+      当前只覆盖兰州话，其他甘肃片区将在后续版本加入。把“兰州话”当成“全甘肃”会误导使用者。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">播报</view>
+    <view class="row-label block">语速</view>
+    <view class="segmented">
+      <view
+        wx:for="{{rateOptions}}"
+        wx:key="value"
+        class="segment {{rate === item.value ? 'active' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="onRateChange"
+      >{{item.label}}</view>
+    </view>
+
+    <view class="row switch-row">
+      <view class="row-label">自动播放译文</view>
+      <switch checked="{{autoPlay}}" color="#2F625C" bindchange="onAutoPlayChange" />
+    </view>
+    <view class="muted">把握不大的结果不会自动播放；低置信度会先提示改字。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">隐私</view>
+    <view class="privacy-item">录音用途：只用于本次翻译，不用于训练，不共享给第三方。</view>
+    <view class="privacy-item">保存时长：原始录音处理完即删除；生成的语音链接 1 小时后失效。</view>
+    <view class="privacy-item">日志：只记录请求 ID、耗时和状态码，不记录原话、译文和音频。</view>
+    <view class="privacy-item">声音样本：本版不使用你的声音做音色克隆；参考音频需单独签署同意记录。</view>
+    <view class="privacy-item">AI 生成语音已在结果卡标注，请对方知悉。</view>
+
+    <button class="danger-btn" bindtap="onDeleteRecord" disabled="{{deleting || !lastRequestId}}">
+      {{deleting ? '正在删除…' : '删除我的本次记录'}}
+    </button>
+    <view wx:if="{{!lastRequestId}}" class="muted">本次还没有记录；生成过一次对话后即可删除。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">后端连接</view>
+    <view class="row">
+      <view class="row-label">接口地址</view>
+      <view class="row-value small">{{apiBase}}</view>
+    </view>
+    <button class="mini-btn reset-btn" size="mini" bindtap="onTestBackend">测试后端连接</button>
+    <view class="muted">
+      这里连不上，录音上传一定失败。开发者工具勾选“不校验合法域名”；真机需把该 HTTPS 域名加入 request 合法域名。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">关于与限制</view>
+    <view class="row">
+      <view class="row-label">版本</view>
+      <view class="row-value">{{version}}</view>
+    </view>
+    <view class="privacy-item">只做语言转写与表达转换，不做医疗诊断、法律建议或金融建议。</view>
+    <view class="privacy-item">不承诺“全甘肃”或“高准确率”；预设句目前是草稿，需母语者校对。</view>
+    <view class="privacy-item">实时合成失败时，会退回文字与常用句语音包，不会把你卡在加载里。</view>
+    <button class="mini-btn reset-btn" size="mini" bindtap="onResetMicIntro">重新查看麦克风说明</button>
+    <button class="mini-btn reset-btn" size="mini" bindtap="onOpenPhrases">打开常用句</button>
+  </view>
+
+  <view class="footer-note">小甘 · 兰州话 ↔ 普通话 · 半双工单句对话</view>
+</view>
